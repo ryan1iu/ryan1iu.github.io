@@ -14,6 +14,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Update submodules
+      run: |
+        git submodule update --init --recursive  # 拉取并初始化子模块
+
     # 安装 Node.js 和 Hexo
     - name: Set up Node.js
       uses: actions/setup-node@v2
