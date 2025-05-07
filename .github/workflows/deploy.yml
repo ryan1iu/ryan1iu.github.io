@@ -1,0 +1,38 @@
+name: Deploy Hexo site to GitHub Pages
+
+# 触发条件：每次推送到 master 分支时触发部署
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # 安装 Node.js 和 Hexo
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '22.15.0'  # 你可以根据实际需要修改 Node.js 的版本
+
+    - name: Install dependencies
+      run: |
+        npm install hexo-cli -g
+        npm install
+
+    # 构建 Hexo 站点
+    - name: Build the site
+      run: hexo generate
+
+    # 部署到 GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        personal_token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub 自动生成的 token
+        publish_dir: ./public  # Hexo 会生成 public 文件夹，发布的目录
+        publish_branch: gh-pages  # 发布到 gh-pages 分支
