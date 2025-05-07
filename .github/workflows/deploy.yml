@@ -10,9 +10,16 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
+    permissions:
+        # Give the default GITHUB_TOKEN write permission to commit and push the
+        # added or changed files to the repository.
+        contents: write
+
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
     - name: Update submodules
       run: |
@@ -22,7 +29,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '22.15.0'  # 你可以根据实际需要修改 Node.js 的版本
+        node-version: '22.15.0'
 
     - name: Install dependencies
       run: |
@@ -34,9 +41,10 @@ jobs:
       run: hexo generate
 
     # 部署到 GitHub Pages
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        personal_token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub 自动生成的 token
-        publish_dir: ./public  # Hexo 会生成 public 文件夹，发布的目录
-        publish_branch: gh-pages  # 发布到 gh-pages 分支
+          branch: gh-pages
+          folder: public
+          clean: true
+          single-commit: true
