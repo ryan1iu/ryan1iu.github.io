@@ -33,7 +33,8 @@ node: 22.15.0
 假设我们希望使用[hexo-theme-cactus](https://github.com/probberechts/hexo-theme-cactus)作为博客的主题.首先将这个主题仓库fork一份到自己的Github仓库,然后将fork出来的仓库以git submodules的方式添加到本地:
 
 ```bash
-git submodules add https://github.com/ryan1iu/hexo-theme-cactus.git themes/cactus
+git submodule add https://github.com/ryan1iu/hexo-theme-cactus.git themes/cactus
+git submodule update --init
 ```
 
 然后进入主题文件夹,创建一个新的分支比如dev,用来保存自己的自定义配置.
