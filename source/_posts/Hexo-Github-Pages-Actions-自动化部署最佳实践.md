@@ -1,5 +1,5 @@
 ---
-title: Hexo + Github Pages/Actions 自动化部署实践
+title: Hexo + Github Pages/Actions 自动化部署经验谈
 date: 2025-05-08 12:16:35
 tags:
   - Hexo
@@ -7,11 +7,11 @@ categories:
   - 工作流
 ---
 
-本文不会介绍如何安装以及配置Hexo,而是着重于对我摸索出的一套Hexo管理和自动化部署的实践流程进行梳理和总结.阅读完本文,你将会学到:
+本文不会介绍如何安装以及配置Hexo,而是着重于对我摸索出的一套Hexo管理和自动化部署的实践流程进行梳理和总结.阅读完本文,你将会了解:
 
 - 如何使用submodules管理主题
 - 如何实现在维护自己的个人主题配置的同时能够同步主题上游的最新改动.
-- 如何使用Github Action实现自动化部署
+- 如何使用Github Actions实现自动化部署
 
 ## 测试环境
 
@@ -85,8 +85,6 @@ jobs:
     runs-on: ubuntu-24.04
 
     permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the
-      # added or changed files to the repository.
       contents: write
 
     steps:
@@ -152,4 +150,4 @@ git push -u origin master
 
 ## 写在最后
 
-文章写的比较"粗糙",旨在提供一个大致的思路.如果有什么问题欢迎在评论区留言讨论.如果你有更好的办法,欢迎不吝赐教.
+文章写的比较"粗糙",旨在提供一个大致的思路.如果有什么问题欢迎在评论区留言讨论.如果你有更好的办法和建议,也欢迎分享.
