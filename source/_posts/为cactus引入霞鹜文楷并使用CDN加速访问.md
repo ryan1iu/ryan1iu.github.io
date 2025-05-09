@@ -2,6 +2,9 @@
 title: 为Cactus引入霞鹜文楷并使用CDN加速访问
 date: 2025-05-09 09:25:42
 tags:
+  - cactus
+categories:
+  - 折腾
 ---
 
 [霞鹜文楷](https://github.com/lxgw/LxgwWenKai)是我本人比较喜欢的一款开源中文字体,兼有仿宋和楷体的特点.
