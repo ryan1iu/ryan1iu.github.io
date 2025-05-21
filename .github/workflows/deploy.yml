@@ -1,0 +1,50 @@
+name: Deploy Hexo site to GitHub Pages
+
+# 触发条件：每次推送到 master 分支时触发部署
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    permissions:
+        # Give the default GITHUB_TOKEN write permission to commit and push the
+        # added or changed files to the repository.
+        contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+          fetch-depth: 0
+
+    - name: Update submodules
+      run: |
+        git submodule update --init --recursive  # 拉取并初始化子模块
+
+    # 安装 Node.js 和 Hexo
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '22.15.0'
+
+    - name: Install dependencies
+      run: |
+        npm install hexo-cli -g
+        npm install
+
+    # 构建 Hexo 站点
+    - name: Build the site
+      run: hexo generate
+
+    # 部署到 GitHub Pages
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+          branch: gh-pages
+          folder: public
+          clean: true
+          single-commit: true
