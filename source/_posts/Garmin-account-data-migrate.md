@@ -1,5 +1,5 @@
 ---
-title: 记录将Garmin手表运动数据从国际服迁移到国服
+title: 将Garmin手表运动数据从国际服迁移到国服的过程记录
 date: 2025-05-26 21:21:36
 tags:
 - Garmin
