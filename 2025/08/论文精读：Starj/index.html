@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <!-- so meta -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="description" content="该论文旨在利用无监督自适应技术来解决轨迹预测模型的跨域问题，提出了一个被称作Straj的模型。该模型整体架构由三个部分组成，具体细节见下文。 1.模型预训练生成能够泛化到跨地理场景的高质量初始伪标签  输入： 已标注的源域数据 未标注的目标域数据 感兴趣智能体过去 $L_p$ 步的轨迹坐标 $P_a$ 其他智能体 $P_o$ 地图信息 $M$ 现有轨迹预测器 $\mathcal{P}$ $ϕ_a$">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction">
+<meta property="og:url" content="https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/index.html">
+<meta property="og:site_name" content="ByteIsle">
+<meta property="og:description" content="该论文旨在利用无监督自适应技术来解决轨迹预测模型的跨域问题，提出了一个被称作Straj的模型。该模型整体架构由三个部分组成，具体细节见下文。 1.模型预训练生成能够泛化到跨地理场景的高质量初始伪标签  输入： 已标注的源域数据 未标注的目标域数据 感兴趣智能体过去 $L_p$ 步的轨迹坐标 $P_a$ 其他智能体 $P_o$ 地图信息 $M$ 现有轨迹预测器 $\mathcal{P}$ $ϕ_a$">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-08-30T00:20:51.682Z">
+<meta property="article:author" content="Ryan Liu">
+<meta property="article:tag" content="轨迹预测">
+<meta name="twitter:card" content="summary">
+    
+      
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        
+            
+                <script>
+                  document.addEventListener("DOMContentLoaded", function () {
+                    renderMathInElement(document.body, {
+                      delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\[", right: "\\]", display: true },
+                        { left: "\\(", right: "\\)", display: false }
+                      ]
+                    });
+                  });
+                </script>
+                
+                  
+                    
+                      
+                                <link rel="shortcut icon" href="/images/favicon.ico">
+                                
+                                  
+                                    
+                                      
+                                                <link rel="icon" type="image/png"
+                                                  href="/images/favicon-192x192.png" sizes="192x192">
+                                                
+                                                  
+                                                    
+                                                      
+                                                                <link rel="apple-touch-icon" sizes="180x180"
+                                                                  href="/images/apple-touch-icon.png">
+                                                                
+                                                                  
+                                                                    
+                                                                      <!-- title -->
+                                                                      <title>
+                                                                        论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction
+                                                                      </title>
+                                                                      <!-- async scripts -->
+                                                                      <!-- Google Analytics -->
+
+
+                                                                        <!-- Umami Analytics -->
+
+
+                                                                          <!-- styles -->
+                                                                          
+<link rel="stylesheet" href="/css/style.css">
+
+                                                                            <!-- persian styles -->
+                                                                            
+                                                                                  <!-- rss -->
+                                                                                  
+                                                                                        
+                                                                                          <link rel="alternate"
+                                                                                            href="/atom.xml"
+                                                                                            title="ByteIsle"
+                                                                                            type="application/atom+xml" />
+                                                                                          
+                                                                                            <!-- mathjax -->
+                                                                                            
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu" style="display: inline;">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/atom.xml">订阅</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/05/%E4%BD%BF%E7%94%A8AI%E7%BC%96%E8%BE%91%E5%99%A8Trae%E5%BC%80%E5%8F%91%E6%B5%8F%E8%A7%88%E5%99%A8%E6%8F%92%E4%BB%B6%E7%9A%84%E5%B0%9D%E8%AF%95/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&text=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&is_video=false&description=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction&body=Check out this article: https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&name=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&t=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%A8%A1%E5%9E%8B%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="toc-number">1.</span> <span class="toc-text">1.模型预训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%AA%E6%A0%87%E7%AD%BE%E6%9B%B4%E6%96%B0"><span class="toc-number">2.</span> <span class="toc-text">2.伪标签更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BD%A8%E8%BF%B9%E8%AF%B1%E5%AF%BC%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0"><span class="toc-number">3.</span> <span class="toc-text">3.轨迹诱导对比学习</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Ryan Liu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-19T16:00:00.000Z" class="dt-published" itemprop="datePublished">2025-08-20</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E8%BD%A8%E8%BF%B9%E9%A2%84%E6%B5%8B/" rel="tag">轨迹预测</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>该论文旨在利用无监督自适应技术来解决轨迹预测模型的跨域问题，提出了一个被称作Straj的模型。该模型整体架构由三个部分组成，具体细节见下文。</p>
+<h2 id="1-模型预训练"><a href="#1-模型预训练" class="headerlink" title="1.模型预训练"></a>1.模型预训练</h2><p>生成能够泛化到跨地理场景的高质量初始伪标签</p>
+<ul>
+<li>输入：<ul>
+<li>已标注的源域数据</li>
+<li>未标注的目标域数据</li>
+<li>感兴趣智能体过去 $L_p$ 步的轨迹坐标 $P_a$</li>
+<li>其他智能体 $P_o$</li>
+<li>地图信息 $M$</li>
+<li>现有轨迹预测器 $\mathcal{P}$<ul>
+<li>$ϕ_a$ 智能体特征编码器</li>
+<li>$ϕ_m$ 地图特征编码器</li>
+<li>$ϕ_f$ 融合特征编码器</li>
+<li>解码器 $φ$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>过程：<ol>
+<li>特征编码：预测器 $\mathcal{P}$ 首先通过特征编码器将输入数据转换为原始特征<ul>
+<li>智能体特征 $\mathcal{A} &#x3D; ϕ_a(P_a, P_o)$</li>
+<li>地图特征 $\mathcal{M} &#x3D; ϕ_m(P_a, M)$</li>
+<li>融合特征 $\mathcal{F} &#x3D; ϕ_f(\mathcal{A}, \mathcal{M})$</li>
+</ul>
+</li>
+<li>智能体和地图互补增强<ul>
+<li>根据智能体或车道段与目标智能体的距离计算遮蔽概率</li>
+<li>对 r%的智能体和车道段进行遮蔽，生成弱增强和强增强后的特征</li>
+<li>通过权衡策略生成被遮蔽的融合特征 $\mathcal{F_{(W,S)}} &#x3D; ϕ_f \mathcal{(A_W,M_S)} ,$ 和 $\mathcal{F_{(S,W)}} &#x3D; ϕ_f \mathcal{(A_S,M_W)}$</li>
+</ul>
+</li>
+<li>通过均方误差损失进行特征重建<ul>
+<li>计算被遮蔽的智能体特征 ($\mathcal{A_W}$, $\mathcal{A_S}$)、地图特征 ($\mathcal{M_W}$, $\mathcal{M_S}$) 和融合特征 ($\mathcal{F_{(W,S)}}$, $\mathcal{F_{(S,W)}}$) 与其对应的原始未遮蔽特征 ($\mathcal{A}$, $\mathcal{M}$, $\mathcal{F}$) 之间的均方误差。</li>
+<li>使模型重建出所有被遮蔽的智能体特征、地图特征和融合特征，使其与原始特征保持一致</li>
+</ul>
+</li>
+<li>对于属于源域的智能体除了 $\mathcal{L}_{MSE}$ 之外，还会计算其预测轨迹与真实轨迹之间的预测误差 $\mathcal{L}_{pred}$</li>
+</ol>
+</li>
+<li>输出：<ul>
+<li>经过初步训练的预测器 $\mathcal{P}$,对跨地理场景中的异构元素分布更具鲁棒性和泛化能力</li>
+<li>基于这个预训练的 $\mathcal{P}$，生成目标域的初始伪标签$H_0$</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-伪标签更新"><a href="#2-伪标签更新" class="headerlink" title="2.伪标签更新"></a>2.伪标签更新</h2><p>确保伪标签的一致性和稳定性，促进预测器的稳定训练</p>
+<ul>
+<li>输入：<ul>
+<li>经过预训练的预测器$\mathcal{P}$。</li>
+<li>第i个epoch下的目标域智能体 $a$ 的伪轨迹$F_i$.</li>
+<li>历史epoch的伪轨迹集合 $H_{i−1}$(初始为 $H_0$)</li>
+<li>$F_i$ 和历史伪轨迹的置信度分数 $s(F_i)$ 和 $s(ĥ)$</li>
+<li>预设的一致性阈值 $T_U$ 和置信度阈值 $T_C$</li>
+<li>用于损失权重计算的缩放参数 $ρt$。</li>
+</ul>
+</li>
+<li>过程：<ol>
+<li>计算当前伪轨迹 $F_i$ 与 $H_{i−1}$ 中每个历史伪轨迹的余弦相似度U</li>
+<li>从 $H_{i−1}$ 中选择与 $F_i$ 余弦相似度最高的历史伪轨迹</li>
+<li>伪标签更新策略：<ul>
+<li>如果 $F_i$ 与 $ĥ$ 的一致性 $U(F̂i, ĥ)$ 低于 $T_U$，或 $F̂i$ 和 $ĥ$ 中任何一个的置信度低于 $Tc$，则不选择任何伪轨迹进行监督，并将 $F̂i$ 加入 $H_{i−1}$ 形成 $Hi$ 。</li>
+<li>否则将 $ĥ$ 和 $F̂i$ 都加入 $Hi$，并选择置信度更高的作为更新后的伪轨迹 $b_i$</li>
+</ul>
+</li>
+<li>加权损失<br>$$\mathcal{L}^{tar}_{pred} &#x3D; exp (U(\hat{F}_i, \hat{h})&#x2F;ρt )\mathcal{L}_{pred} (\hat{F}_{i+1}, b_i)$$<br>使用基于一致性水平的指数函数计算目标域的预测损失权重,其目的是：<ul>
+<li>关注高一致性的样本，优先让模型从那些更一致的样本中学习，从而提高伪标签的质量和训练的稳定性</li>
+<li>防止误差累积: 通过一致性加权，降低模型在不一致样本上的学习权重，从而减少伪标签错误传播的风险。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>输出：<ul>
+<li>每个目标域智能体更新后的伪轨迹 $b_i$，用于在下一个epoch 监督其预测</li>
+<li>加权的目标域预测损失 $L^{tar}_{pred}$，用于最终的总损失计算.</li>
+<li>更新后的历史伪轨迹集合 $H_i$.</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-轨迹诱导对比学习"><a href="#3-轨迹诱导对比学习" class="headerlink" title="3.轨迹诱导对比学习"></a>3.轨迹诱导对比学习</h2><p>通过增强相似轨迹的跨地理表示紧凑性和增强不同轨迹的表示可分离性,缓解跨地理区域智能体的表示偏差.</p>
+<ul>
+<li>输入：<ul>
+<li>已更新得伪轨迹 $\hat{F}_a$ (target domain智能体) 或真值轨迹 $F_a$ (source domain智能体，用于减少误差累积)</li>
+</ul>
+</li>
+<li>过程：<ol>
+<li>根据轨迹一致性 $U(\hat{F}_a, \hat{F}_j)$ 和置信度，选择与当前智能体 $a$ 相似的轨迹作为正样本 $p$，选择不相似的轨迹作为负样本集 $Sn$</li>
+<li>如果智能体 $a$ 属于源域，则用其真值轨迹 $Fa$ 替换预测轨迹 $\hat{F}_a$ 来进行对比学习，以减少误差累积.</li>
+<li>对比损失计算：借鉴 InfoNCE loss，通过余弦相似度 $sim(x, y)$ 计算轨迹诱导对比损失 $L(d1,d2)$<br>$$\mathcal{L}(d_1,d_2) &#x3D; −log \frac{exp (sim(F_a,F_p)&#x2F;ρ_c)}{\sum_{j∈S_n∪p} exp (sim(F_a,F_j)&#x2F;ρ_c)}$$<br>智能体 a 被称为锚点智能体，它来自域 d1，智能体 j 是从域 d2中选取的候选智能体，用于构成 a的正样本或负样本。d1 和 d2 可以是源域 Ds 或目标域 Dt，当 d1 &#x3D; d2 时，a 和 j 来自同一个域，对应于域内对比损失，当 d1 ≠ d2时，a 和 j 来自不同的域，对应于域间对比损失。<br>分子计算锚点 $F_a$ 与正样本 $F_p$ 之间相似度的指数加权值。分母计算锚点 $F_a$与所有样本之间相似度的指数加权和。当正样本的相似度相对于所有样本的相似度越大时，损失越小。</li>
+<li>总对比损失 $L_{con}$<ul>
+<li>域内对比损失 $\mathcal{L}(D_s,D_s)$ 和 $\mathcal{L}(D_t,D_t)$</li>
+<li>域间对比损失 $\mathcal{L}(D_s,D_t)$ 和 $\mathcal{L}(D_t,D_s)$</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>输出：<ul>
+<li>总对比损失 $Lcon$，强制模型学习更具判别性的跨地理表示</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a href="/atom.xml">订阅</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%A8%A1%E5%9E%8B%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="toc-number">1.</span> <span class="toc-text">1.模型预训练</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%AA%E6%A0%87%E7%AD%BE%E6%9B%B4%E6%96%B0"><span class="toc-number">2.</span> <span class="toc-text">2.伪标签更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BD%A8%E8%BF%B9%E8%AF%B1%E5%AF%BC%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0"><span class="toc-number">3.</span> <span class="toc-text">3.轨迹诱导对比学习</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&text=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&is_video=false&description=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction&body=Check out this article: https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&title=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&name=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://liurun.life/2025/08/%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB%EF%BC%9AStarj/&t=论文精读：Self-training for Bridging the Cross-Geography Gap in Trajectory Prediction"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    Ryan Liu
+    
+
+      &nbsp;
+      
+      
+      
+        
+        
+          <a class="icon u-url" target="_blank" rel="noopener me" href="http://github.com/ryan1iu" aria-label="github" title="github">
+            <i class="fa-brands fa-github"></i><!--
+      ---></a><!--
+    ---><!--
+    ---> 和 
+        
+      
+        
+        
+          <a class="icon u-email" target="_blank" rel="noopener" href="mailto:lr164517@gmail.com" aria-label="mail" title="mail">
+            <i class="fa-solid fa-envelope"></i><!--
+      ---></a>
+        <!--
+    --->.
+        
+      
+  
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/atom.xml">订阅</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+
+  <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/lxgwwenkaiscreen.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'ryan1iu/ryan1iu.github.io';
+      var utterances_issue_term = 'pathname';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'boxy-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>

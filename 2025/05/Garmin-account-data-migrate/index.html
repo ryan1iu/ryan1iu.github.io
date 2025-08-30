@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <!-- so meta -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="description" content="前情提要最近想把自己的Garmin手表添加到微信设备上从而可以将运动记录同步到微信运动, 但是只支持绑定国区账号. 我的运动数据都是在国际服账号中,因此花费了一些时间研究了一下如何进行数据迁移, 最终检索到了以下几种方案:  有一个开源的项目可以帮助用户自动化定期在国际服和国服账号之间同步数据: dailysync-rev 如果不想自己部署, 有一个网站部署了上面那个项目并且提供免费同步服务: D">
+<meta property="og:type" content="article">
+<meta property="og:title" content="将Garmin手表运动数据从国际服迁移到国服的过程记录">
+<meta property="og:url" content="https://liurun.life/2025/05/Garmin-account-data-migrate/index.html">
+<meta property="og:site_name" content="ByteIsle">
+<meta property="og:description" content="前情提要最近想把自己的Garmin手表添加到微信设备上从而可以将运动记录同步到微信运动, 但是只支持绑定国区账号. 我的运动数据都是在国际服账号中,因此花费了一些时间研究了一下如何进行数据迁移, 最终检索到了以下几种方案:  有一个开源的项目可以帮助用户自动化定期在国际服和国服账号之间同步数据: dailysync-rev 如果不想自己部署, 有一个网站部署了上面那个项目并且提供免费同步服务: D">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250526214652999.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250521155232322.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250521155312980.png">
+<meta property="article:published_time" content="2025-05-26T13:21:36.000Z">
+<meta property="article:modified_time" content="2025-08-30T00:20:51.681Z">
+<meta property="article:author" content="Ryan Liu">
+<meta property="article:tag" content="Garmin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250526214652999.png">
+    
+      
+                  
+                    
+                      
+                                <link rel="shortcut icon" href="/images/favicon.ico">
+                                
+                                  
+                                    
+                                      
+                                                <link rel="icon" type="image/png"
+                                                  href="/images/favicon-192x192.png" sizes="192x192">
+                                                
+                                                  
+                                                    
+                                                      
+                                                                <link rel="apple-touch-icon" sizes="180x180"
+                                                                  href="/images/apple-touch-icon.png">
+                                                                
+                                                                  
+                                                                    
+                                                                      <!-- title -->
+                                                                      <title>
+                                                                        将Garmin手表运动数据从国际服迁移到国服的过程记录
+                                                                      </title>
+                                                                      <!-- async scripts -->
+                                                                      <!-- Google Analytics -->
+
+
+                                                                        <!-- Umami Analytics -->
+
+
+                                                                          <!-- styles -->
+                                                                          
+<link rel="stylesheet" href="/css/style.css">
+
+                                                                            <!-- persian styles -->
+                                                                            
+                                                                                  <!-- rss -->
+                                                                                  
+                                                                                        
+                                                                                          <link rel="alternate"
+                                                                                            href="/atom.xml"
+                                                                                            title="ByteIsle"
+                                                                                            type="application/atom+xml" />
+                                                                                          
+                                                                                            <!-- mathjax -->
+                                                                                            
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu" style="display: inline;">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/atom.xml">订阅</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2025/05/%E4%BD%BF%E7%94%A8AI%E7%BC%96%E8%BE%91%E5%99%A8Trae%E5%BC%80%E5%8F%91%E6%B5%8F%E8%A7%88%E5%99%A8%E6%8F%92%E4%BB%B6%E7%9A%84%E5%B0%9D%E8%AF%95/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/05/neovim-to-vscode/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://liurun.life/2025/05/Garmin-account-data-migrate/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&text=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&is_video=false&description=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=将Garmin手表运动数据从国际服迁移到国服的过程记录&body=Check out this article: https://liurun.life/2025/05/Garmin-account-data-migrate/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&name=将Garmin手表运动数据从国际服迁移到国服的过程记录&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://liurun.life/2025/05/Garmin-account-data-migrate/&t=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E6%83%85%E6%8F%90%E8%A6%81"><span class="toc-number">1.</span> <span class="toc-text">前情提要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">2.</span> <span class="toc-text">我的选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80"><span class="toc-number">2.1.</span> <span class="toc-text">方案一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C"><span class="toc-number">2.2.</span> <span class="toc-text">方案二</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89"><span class="toc-number">2.3.</span> <span class="toc-text">方案三</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%9B%9B"><span class="toc-number">2.4.</span> <span class="toc-text">方案四</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        将Garmin手表运动数据从国际服迁移到国服的过程记录
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Ryan Liu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-05-26T13:21:36.000Z" class="dt-published" itemprop="datePublished">2025-05-26</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E6%8A%98%E8%85%BE/">折腾</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Garmin/" rel="tag">Garmin</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h2><p>最近想把自己的Garmin手表添加到微信设备上从而可以将运动记录同步到微信运动, 但是只支持绑定国区账号. 我的运动数据都是在国际服账号中,因此花费了一些时间研究了一下如何进行数据迁移, 最终检索到了以下几种方案:</p>
+<ol>
+<li>有一个开源的项目可以帮助用户自动化定期在国际服和国服账号之间同步数据: <a target="_blank" rel="noopener" href="https://github.com/gooin/dailysync-rev">dailysync-rev</a></li>
+<li>如果不想自己部署, 有一个网站部署了上面那个项目并且提供免费同步服务: <a target="_blank" rel="noopener" href="https://dailysync.vyzt.dev/">DailySync</a></li>
+<li>Garmin账号中心提供了导出数据的选项, 可以自己手动导出, 然后再导入到另一个账号</li>
+<li>直接将手表通过USB连接到电脑, 手表中保存了运动记录, 直接复制出来并导入到另一个账号</li>
+</ol>
+<blockquote>
+<p>上面这几种方案我只研究了如何迁移运动数据, 对于其他的健康数据比如HRV, 睡眠等等, 我没有找到办法, 不过方案2里面的网站好像提供付费的健康数据迁移服务, 不知道怎么做到的.</p>
+</blockquote>
+<h2 id="我的选择"><a href="#我的选择" class="headerlink" title="我的选择"></a>我的选择</h2><p>我认为方法4是最方便的, 也是我最终选择的方案. 不过方法4是我最后偶然间才得知的, 在此之前我先后尝试了方法1,2,3, 下面我将介绍自己为什么没有采用这些方案.</p>
+<h3 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h3><p>我尝试在自己的VPS上通过该项目提供的docker方式进行部署, 在我确认账号和密码设置正确的情况下, 该项目无法正常工作, 总是抛出权限错误, 我不想在上面花太多时间, 于是转向了方案二.</p>
+<h3 id="方案二"><a href="#方案二" class="headerlink" title="方案二"></a>方案二</h3><p>方案二只支持同步当前及以后的数据, 要是需要对以前的数据进行批量迁移的话, 得花钱…, 放弃.<br><img src="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250526214652999.png" alt="img"></p>
+<h3 id="方案三"><a href="#方案三" class="headerlink" title="方案三"></a>方案三</h3><p>我登录国际区账号, 并且按照网上的方法申请了导出数据, 大概两个小时之后收到了官方的邮件. 但是在我尝试导入官方提供的数据到另一个账户时, 虽然提示导入成功, 但实际上并没有…, 不知道什么原因, 放弃.</p>
+<h3 id="方案四"><a href="#方案四" class="headerlink" title="方案四"></a>方案四</h3><p>就在我准备放弃的时候, 我看到了一位网友的评论留言, 我才意识到其实运动记录都有保存在手表中的,<br><img src="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250521155232322.png" alt="img"><br>通过USB线连接手表到电脑, 导航到Activity下, 所有的以.fit结尾的运动记录都在里面了, 打开国服Garmin Connect, 然后点击页面右上角的导入数据按钮, 全选, 导入, 结束… 折腾了半天最后一分钟搞定.<br><img src="https://cdn.jsdelivr.net/gh/ryan1iu/ryan1iu.github.io@imgbk/images/20250521155312980.png" alt="fit"></p>
+
+  </div>
+</article>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/tags/">标签</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a href="/atom.xml">订阅</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E6%83%85%E6%8F%90%E8%A6%81"><span class="toc-number">1.</span> <span class="toc-text">前情提要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">2.</span> <span class="toc-text">我的选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80"><span class="toc-number">2.1.</span> <span class="toc-text">方案一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C"><span class="toc-number">2.2.</span> <span class="toc-text">方案二</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89"><span class="toc-number">2.3.</span> <span class="toc-text">方案三</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%9B%9B"><span class="toc-number">2.4.</span> <span class="toc-text">方案四</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://liurun.life/2025/05/Garmin-account-data-migrate/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&text=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&is_video=false&description=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=将Garmin手表运动数据从国际服迁移到国服的过程记录&body=Check out this article: https://liurun.life/2025/05/Garmin-account-data-migrate/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&title=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://liurun.life/2025/05/Garmin-account-data-migrate/&name=将Garmin手表运动数据从国际服迁移到国服的过程记录&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://liurun.life/2025/05/Garmin-account-data-migrate/&t=将Garmin手表运动数据从国际服迁移到国服的过程记录"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    Ryan Liu
+    
+
+      &nbsp;
+      
+      
+      
+        
+        
+          <a class="icon u-url" target="_blank" rel="noopener me" href="http://github.com/ryan1iu" aria-label="github" title="github">
+            <i class="fa-brands fa-github"></i><!--
+      ---></a><!--
+    ---><!--
+    ---> 和 
+        
+      
+        
+        
+          <a class="icon u-email" target="_blank" rel="noopener" href="mailto:lr164517@gmail.com" aria-label="mail" title="mail">
+            <i class="fa-solid fa-envelope"></i><!--
+      ---></a>
+        <!--
+    --->.
+        
+      
+  
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/tags/">标签</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a href="/atom.xml">订阅</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+
+  <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/lxgwwenkaiscreen.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'ryan1iu/ryan1iu.github.io';
+      var utterances_issue_term = 'pathname';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'boxy-light';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
